@@ -20,7 +20,6 @@ package json
 import (
 	"bytes"
 	stdjson "encoding/json"
-	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/go-structform/gotype"
 	"github.com/elastic/go-structform/json"
 	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/beat"
@@ -41,25 +40,6 @@ type Config struct {
 	Pretty     bool
 	EscapeHTML bool
 	LocalTime  bool
-}
-
-var defaultConfig = Config{
-	Pretty:     false,
-	EscapeHTML: false,
-	LocalTime:  false,
-}
-
-func init() {
-	codec.RegisterType("json", func(info beat.Info, cfg *config.C) (codec.Codec, error) {
-		config := defaultConfig
-		if cfg != nil {
-			if err := cfg.Unpack(&config); err != nil {
-				return nil, err
-			}
-		}
-
-		return New(info.Version, config), nil
-	})
 }
 
 // New creates a new json Encoder.
