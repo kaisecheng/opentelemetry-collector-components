@@ -22,15 +22,15 @@ import (
 	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/beat"
 	"go.opentelemetry.io/collector/consumer/consumererror"
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.uber.org/zap"
 	"time"
 
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/transport"
 	v2 "github.com/elastic/go-lumber/client/v2"
 )
 
 type syncClient struct {
-	log *logp.Logger
+	log *zap.Logger
 	*transport.Client
 	client   *v2.SyncClient
 	observer Observer
@@ -44,8 +44,8 @@ func newSyncClient(
 	conn *transport.Client,
 	observer Observer,
 	config *Config,
+	log *zap.Logger,
 ) (*syncClient, error) {
-	log := logp.NewLogger("logstash")
 	c := &syncClient{
 		log:      log,
 		Client:   conn,
@@ -97,7 +97,7 @@ func (c *syncClient) Close() error {
 
 func (c *syncClient) reconnect() error {
 	if err := c.Client.Close(); err != nil {
-		c.log.Errorf("error closing connection to logstash host %s: %+v, reconnecting...", c.Host(), err)
+		c.log.Sugar().Errorf("error closing connection to logstash host %s: %+v, reconnecting...", c.Host(), err)
 	}
 	return c.Client.Connect()
 }
@@ -155,7 +155,7 @@ func (c *syncClient) Publish(_ context.Context, logs plog.Logs) error {
 		}
 		took := time.Since(begin)
 		st.ReportLatency(took)
-		c.log.Debugf("%v events out of %v events sent to logstash host %s. Continue sending",
+		c.log.Sugar().Debugf("%v events out of %v events sent to logstash host %s. Continue sending",
 			n, len(events), c.Host())
 
 		events = events[n:]
@@ -169,7 +169,7 @@ func (c *syncClient) Publish(_ context.Context, logs plog.Logs) error {
 			}
 			_ = c.Close()
 
-			c.log.Errorf("Failed to publish events caused by: %+v", err)
+			c.log.Sugar().Errorf("Failed to publish events caused by: %+v", err)
 
 			rest := len(events)
 			st.RetryableErrors(rest)
@@ -186,7 +186,7 @@ func (c *syncClient) Publish(_ context.Context, logs plog.Logs) error {
 func (c *syncClient) publishWindowed(events []plog.LogRecord) (int, error) {
 	batchSize := len(events)
 	windowSize := c.win.get()
-	c.log.Debugf("Try to publish %v events to logstash host %s with window size %v",
+	c.log.Sugar().Debugf("Try to publish %v events to logstash host %s with window size %v",
 		batchSize, c.Host(), windowSize)
 
 	// prepare message payload
@@ -209,7 +209,7 @@ func (c *syncClient) sendEvents(events []plog.LogRecord) (int, error) {
 		record := events[i]
 		//TODO: Testing purpose, it should deserialize from LogRecord.Body, send it as-it-is?
 		event := beat.Event{
-			Timestamp: time.Now(),
+			Timestamp: record.Timestamp().AsTime(),
 			Meta:      map[string]interface{}{},
 			Fields:    record.Attributes().AsRaw(),
 		}

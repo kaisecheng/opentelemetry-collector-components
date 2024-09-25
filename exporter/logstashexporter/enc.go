@@ -20,12 +20,11 @@ package logstashexporter
 import (
 	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/beat"
 	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/codec/json"
+	"go.uber.org/zap"
 	"strings"
-
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-func makeLogstashEventEncoder(log *logp.Logger, info beat.Info, escapeHTML bool, index string) func(interface{}) ([]byte, error) {
+func makeLogstashEventEncoder(log *zap.Logger, info beat.Info, escapeHTML bool, index string) func(interface{}) ([]byte, error) {
 	enc := json.New(info.Version, json.Config{
 		Pretty:     false,
 		EscapeHTML: escapeHTML,
@@ -34,7 +33,7 @@ func makeLogstashEventEncoder(log *logp.Logger, info beat.Info, escapeHTML bool,
 	return func(event interface{}) (d []byte, err error) {
 		d, err = enc.Encode(index, event.(*beat.Event))
 		if err != nil {
-			log.Debugf("Failed to encode event: %v", event)
+			log.Sugar().Debugf("Failed to encode event: %v", event)
 		}
 		return
 	}
