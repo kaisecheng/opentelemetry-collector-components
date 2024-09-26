@@ -14,7 +14,7 @@ func newLogsExporter(
 	params exporter.Settings,
 	cfg *Config,
 ) (exporter.Logs, error) {
-	clients, err := makeLogstash(beat.Info{}, NewNilObserver(), cfg)
+	clients, err := makeLogstash(beat.Info{}, NewNilObserver(), cfg, params.Logger)
 	if err != nil {
 		return nil, err
 	}

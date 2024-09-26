@@ -21,6 +21,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/transport"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/beat"
+	"go.uber.org/zap"
 )
 
 const (
@@ -29,7 +30,7 @@ const (
 	defaultPort                   = 5044
 )
 
-func makeLogstash(beat beat.Info, observer Observer, lsConfig *Config) ([]NetworkClient, error) {
+func makeLogstash(beat beat.Info, observer Observer, lsConfig *Config, log *zap.Logger) ([]NetworkClient, error) {
 	tls, err := tlscommon.LoadTLSConfig(lsConfig.TLS.ToTLSCommonConfig())
 	if err != nil {
 		return nil, err
@@ -58,7 +59,7 @@ func makeLogstash(beat beat.Info, observer Observer, lsConfig *Config) ([]Networ
 		//if lsConfig.Pipelining > 0 {
 		//	client, err = newAsyncClient(beat, conn, observer, lsConfig)
 		//} else {
-		client, err = newSyncClient(beat, conn, observer, lsConfig)
+		client, err = newSyncClient(beat, conn, observer, lsConfig, log)
 		//}
 		if err != nil {
 			return nil, err
