@@ -41,8 +41,8 @@ type Config struct {
 }
 
 type Backoff struct {
-	Init time.Duration
-	Max  time.Duration
+	Init time.Duration `mapstructure:"init"`
+	Max  time.Duration `mapstructure:"max"`
 }
 
 // ProxyConfig holds the configuration information required to proxy
