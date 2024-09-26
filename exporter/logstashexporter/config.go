@@ -18,9 +18,11 @@
 package logstashexporter
 
 import (
+	"errors"
 	"time"
 
 	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/elasticagentlib"
+	"go.opentelemetry.io/collector/component"
 )
 
 type Config struct {
@@ -82,7 +84,12 @@ func defaultConfig() Config {
 	}
 }
 
+var _ component.Config = (*Config)(nil)
+
 func (cfg *Config) Validate() error {
+	if cfg.Hosts == nil || len(cfg.Hosts) == 0 {
+		return errors.New("hosts must be non-empty")
+	}
 	return nil
 }
 
