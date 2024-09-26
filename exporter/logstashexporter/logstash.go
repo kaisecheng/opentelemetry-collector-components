@@ -30,16 +30,19 @@ const (
 )
 
 func makeLogstash(beat beat.Info, observer Observer, lsConfig *Config) ([]NetworkClient, error) {
-	tls, err := tlscommon.LoadTLSConfig(lsConfig.TLS)
+	tls, err := tlscommon.LoadTLSConfig(lsConfig.TLS.ToTLSCommonConfig())
 	if err != nil {
 		return nil, err
 	}
 
 	transp := transport.Config{
 		Timeout: lsConfig.Timeout,
-		Proxy:   &lsConfig.Proxy,
-		TLS:     tls,
-		Stats:   observer,
+		Proxy: &transport.ProxyConfig{
+			URL:          lsConfig.URL,
+			LocalResolve: lsConfig.LocalResolve,
+		},
+		TLS:   tls,
+		Stats: observer,
 	}
 
 	clients := make([]NetworkClient, len(lsConfig.Hosts))

@@ -20,25 +20,24 @@ package logstashexporter
 import (
 	"time"
 
-	"github.com/elastic/elastic-agent-libs/transport"
-	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
+	"github.com/elastic/opentelemetry-collector-components/exporter/logstashexporter/internal/elasticagentlib"
 )
 
 type Config struct {
-	Hosts            []string              `mapstructure:"hosts"`
-	Index            string                `mapstructure:"index"`
-	LoadBalance      bool                  `mapstructure:"loadbalance"`
-	BulkMaxSize      int                   `mapstructure:"bulk_max_size"`
-	SlowStart        bool                  `mapstructure:"slow_start"`
-	Timeout          time.Duration         `mapstructure:"timeout"`
-	TTL              time.Duration         `mapstructure:"ttl"               validate:"min=0"`
-	Pipelining       int                   `mapstructure:"pipelining"        validate:"min=0"`
-	CompressionLevel int                   `mapstructure:"compression_level" validate:"min=0, max=9"`
-	MaxRetries       int                   `mapstructure:"max_retries"       validate:"min=-1"`
-	TLS              *tlscommon.Config     `mapstructure:"ssl"`
-	Proxy            transport.ProxyConfig `mapstructure:"proxy"`
-	Backoff          Backoff               `mapstructure:"backoff"`
-	EscapeHTML       bool                  `mapstructure:"escape_html"`
+	Hosts            []string                `mapstructure:"hosts"`
+	Index            string                  `mapstructure:"index"`
+	LoadBalance      bool                    `mapstructure:"loadbalance"`
+	BulkMaxSize      int                     `mapstructure:"bulk_max_size"`
+	SlowStart        bool                    `mapstructure:"slow_start"`
+	Timeout          time.Duration           `mapstructure:"timeout"`
+	TTL              time.Duration           `mapstructure:"ttl"               validate:"min=0"`
+	Pipelining       int                     `mapstructure:"pipelining"        validate:"min=0"`
+	CompressionLevel int                     `mapstructure:"compression_level" validate:"min=0, max=9"`
+	MaxRetries       int                     `mapstructure:"max_retries"       validate:"min=-1"`
+	TLS              *elasticagentlib.Config `mapstructure:"ssl"`
+	ProxyConfig      `mapstructure:",squash"`
+	Backoff          Backoff `mapstructure:"backoff"`
+	EscapeHTML       bool    `mapstructure:"escape_html"`
 }
 
 type Backoff struct {
@@ -46,7 +45,20 @@ type Backoff struct {
 	Max  time.Duration
 }
 
+// ProxyConfig holds the configuration information required to proxy
+// connections through a SOCKS5 proxy server.
+type ProxyConfig struct {
+	// URL of the SOCKS proxy. Scheme must be socks5. Username and password can be
+	// embedded in the URL.
+	URL string `mapstructure:"proxy_url"`
+
+	// Resolve names locally instead of on the SOCKS server.
+	LocalResolve bool `mapstructure:"proxy_use_local_resolver"`
+}
+
 func defaultConfig() Config {
+	defaultTLSEnabled := false
+
 	return Config{
 		LoadBalance:      false,
 		Pipelining:       2,
@@ -56,6 +68,12 @@ func defaultConfig() Config {
 		Timeout:          30 * time.Second,
 		MaxRetries:       3,
 		TTL:              0 * time.Second,
+		TLS: &elasticagentlib.Config{
+			Enabled:          &defaultTLSEnabled,
+			VerificationMode: "full",
+			Versions:         []string{"TLSv1.1", "TLSv1.2", "TLSv1.3"},
+			Renegotiation:    "never",
+		},
 		Backoff: Backoff{
 			Init: 1 * time.Second,
 			Max:  60 * time.Second,
