@@ -5,7 +5,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
 
-type Config struct {
+type TLSConfig struct {
 	Enabled              *bool    `mapstructure:"enabled" config:"enabled"`
 	VerificationMode     string   `mapstructure:"verification_mode" config:"verification_mode"` // one of 'none', 'full'
 	Versions             []string `mapstructure:"supported_protocols" config:"supported_protocols"`
