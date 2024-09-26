@@ -29,22 +29,20 @@ func (c *TLSConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
-func (c *TLSConfig) ToTLSCommonConfig() *tlscommon.Config {
+func (c *TLSConfig) ToTLSCommonConfig() (*tlscommon.Config, error) {
 	if !c.IsEnabled() {
-		return nil
+		return nil, nil
 	}
 
 	cfg, err := config.NewConfigFrom(c)
 	if err != nil {
-		// TODO log error
-		return nil
+		return nil, err
 	}
 
 	tcConfig := tlscommon.Config{}
 	if err := cfg.Unpack(&tcConfig); err != nil {
-		// TODO log error
-		return nil
+		return nil, err
 	}
 
-	return &tcConfig
+	return &tcConfig, nil
 }
