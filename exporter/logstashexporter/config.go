@@ -24,17 +24,17 @@ import (
 )
 
 type Config struct {
-	Hosts            []string                `mapstructure:"hosts"`
-	Index            string                  `mapstructure:"index"`
-	LoadBalance      bool                    `mapstructure:"loadbalance"`
-	BulkMaxSize      int                     `mapstructure:"bulk_max_size"`
-	SlowStart        bool                    `mapstructure:"slow_start"`
-	Timeout          time.Duration           `mapstructure:"timeout"`
-	TTL              time.Duration           `mapstructure:"ttl"               validate:"min=0"`
-	Pipelining       int                     `mapstructure:"pipelining"        validate:"min=0"`
-	CompressionLevel int                     `mapstructure:"compression_level" validate:"min=0, max=9"`
-	MaxRetries       int                     `mapstructure:"max_retries"       validate:"min=-1"`
-	TLS              *elasticagentlib.Config `mapstructure:"ssl"`
+	Hosts            []string                   `mapstructure:"hosts"`
+	Index            string                     `mapstructure:"index"`
+	LoadBalance      bool                       `mapstructure:"loadbalance"`
+	BulkMaxSize      int                        `mapstructure:"bulk_max_size"`
+	SlowStart        bool                       `mapstructure:"slow_start"`
+	Timeout          time.Duration              `mapstructure:"timeout"`
+	TTL              time.Duration              `mapstructure:"ttl"               validate:"min=0"`
+	Pipelining       int                        `mapstructure:"pipelining"        validate:"min=0"`
+	CompressionLevel int                        `mapstructure:"compression_level" validate:"min=0, max=9"`
+	MaxRetries       int                        `mapstructure:"max_retries"       validate:"min=-1"`
+	TLS              *elasticagentlib.TLSConfig `mapstructure:"ssl"`
 	ProxyConfig      `mapstructure:",squash"`
 	Backoff          Backoff `mapstructure:"backoff"`
 	EscapeHTML       bool    `mapstructure:"escape_html"`
@@ -68,7 +68,7 @@ func defaultConfig() Config {
 		Timeout:          30 * time.Second,
 		MaxRetries:       3,
 		TTL:              0 * time.Second,
-		TLS: &elasticagentlib.Config{
+		TLS: &elasticagentlib.TLSConfig{
 			Enabled:          &defaultTLSEnabled,
 			VerificationMode: "full",
 			Versions:         []string{"TLSv1.1", "TLSv1.2", "TLSv1.3"},

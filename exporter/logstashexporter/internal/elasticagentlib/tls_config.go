@@ -25,11 +25,11 @@ type CertificateConfig struct {
 	PassphrasePath string `mapstructure:"key_passphrase_path" config:"key_passphrase_path"`
 }
 
-func (c *Config) IsEnabled() bool {
+func (c *TLSConfig) IsEnabled() bool {
 	return c != nil && (c.Enabled == nil || *c.Enabled)
 }
 
-func (c *Config) ToTLSCommonConfig() *tlscommon.Config {
+func (c *TLSConfig) ToTLSCommonConfig() *tlscommon.Config {
 	if !c.IsEnabled() {
 		return nil
 	}
